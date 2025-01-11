@@ -10,6 +10,7 @@ const createWindow = async () => {
     }
   });
   win.setMenuBarVisibility(false);
+  win.title = "Cap-Argos(投球動作解析アプリケーション)"
 
   if (app.isPackaged) {
     const serve = (await import("electron-serve")).default;

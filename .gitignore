@@ -37,3 +37,7 @@ next-env.d.ts
 .yarn/
 .yarnrc.yml
 sqlite.db
+src/engine/__pycache__/
+src/engine/_models/
+*.mp4
+*.pt

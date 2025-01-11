@@ -4,6 +4,12 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  webpack: (config) => {
+    config.externals.push({
+      canvas: 'commonjs canvas',
+    });
+    return config;
+  },
 };
 
 export default nextConfig;

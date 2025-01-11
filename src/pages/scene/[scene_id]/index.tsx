@@ -1,5 +1,9 @@
-'use client';
+import Trajectory from "@/components/Trajectory";
+import dynamic from "next/dynamic";
 import { useEffect } from "react";
+// const Trajectory = dynamic(() => import("@/components/Trajectory"), {
+//   ssr: false,
+// });
 
 const Home = () => {
   useEffect(() => {
@@ -14,6 +18,6 @@ const Home = () => {
     };
     f();
   }, []);
-  return <></>;
+  return <Trajectory />;
 };
 export default Home;

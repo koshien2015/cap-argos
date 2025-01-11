@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
     on: (channel, callback) => {
@@ -8,3 +8,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.send(channel, args);
     }
 });
+
+contextBridge.exposeInMainWorld('webUtils', webUtils)
