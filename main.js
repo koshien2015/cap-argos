@@ -9,6 +9,7 @@ const createWindow = async () => {
       preload: path.join(__dirname, "preload.js")
     }
   });
+  win.setMenuBarVisibility(false);
 
   if (app.isPackaged) {
     const serve = (await import("electron-serve")).default;
