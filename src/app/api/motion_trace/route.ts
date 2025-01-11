@@ -1,20 +1,44 @@
+import { getDatabaseConnection } from "@/utils/database";
 import { spawn } from "child_process";
 import { NextRequest } from "next/server";
-import { join } from "path";
+//import { join } from "path";
 
-export async function POST(req: NextRequest) {
-  const body = await req.json()
+export async function POST(req: NextRequest): Promise<Response> {
+  const body = await req.json();
+  const db = getDatabaseConnection();
+  // videoテーブルにファイルパスを格納
+  const result = db
+    .prepare("INSERT INTO video (filepath) VALUES (?)")
+    .run(body.input);
+  const insertedRowId = result.lastInsertRowid;
+  // sceneデータを作成
+  db
+    .prepare("INSERT INTO scene (video_id) VALUES (?)")
+    .run(insertedRowId);
   try {
     // 実行ファイルのパスを取得
     const executablePath =
-      process.env.NODE_ENV === "development"
-        ? "python"
-        : join(process.resourcesPath, "motion_trace.exe");
+      process.env.NODE_ENV === "development" ? "python" : "";
     // Windowsではスペースを含むパスも正しく扱えるように配列で指定
     const args =
       process.env.NODE_ENV === "development"
-        ? ["src/engine/core.py", `--input`, body.input]
-        : [`--input`, body.input];
+        ? [
+            "src/engine/core.py",
+            `--input`,
+            body.input,
+            `--sceneId`,
+            body.sceneId,
+            `--videoId`,
+            insertedRowId,
+          ]
+        : [
+            `--input`,
+            body.input,
+            `--sceneId`,
+            body.sceneId,
+            `--videoId`,
+            insertedRowId,
+          ];
     const options = {
       // シェルを使用しない（セキュリティ上推奨）
       shell: false,

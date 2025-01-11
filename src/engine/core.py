@@ -61,7 +61,7 @@ def detect(gray_diff, thresh_diff=THRESHOLD, dilationSize=DILATION_SIZE, kernelS
     return ball_pos, img
 
 
-def displayCircle(image, ballList, thickness, frame_id, frame):
+def displayCircle(image, ballList, thickness, frame_id, frame, video_id):
     conn, cursor = AnalysisDB().get_cursor()
     overlay = image.copy()
     try:
@@ -74,9 +74,10 @@ def displayCircle(image, ballList, thickness, frame_id, frame):
             h,w,c = frame.shape
             cursor.execute('''
                     INSERT INTO pose
-                    (frame_number, x, y, keypoints)
-                    VALUES (?, ?, ?, ?)
+                    (video_id, frame_number, x, y, keypoints)
+                    VALUES (?, ?, ?, ?, ?)
                     ''', (
+                        video_id,
                         frame_id,
                         x/w,
                         y/h,
@@ -101,7 +102,7 @@ def blackToColor(bImage):
     return colorImage
 
 
-def run(input_video_path, output_video_path, debug_video_path):
+def run(input_video_path, output_video_path, debug_video_path, video_id):
     video = cv2.VideoCapture(input_video_path)  # videoファイルを読み込む
     #inFourcc = cv2.VideoWriter_fourcc(*'mp4v')
     outFourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
@@ -145,9 +146,9 @@ def run(input_video_path, output_video_path, debug_video_path):
         gray_diff_m = cv2.bitwise_and(gray_diff, im_mask)
         ball, dilation_img = detect(gray_diff_m)
 
-        frame = displayCircle(frame, ball, -1, frame_count, frame)  # 丸で加工
+        frame = displayCircle(frame, ball, -1, frame_count, frame, video_id)  # 丸で加工
         cImage = blackToColor(dilation_img)  # 2値化画像をカラーの配列サイズと同じにする
-        frame = PoseDetector().detect_pose(frame, frame_count)
+        frame = PoseDetector().detect_pose(frame, frame_count, video_id)
         # フレーム番号をフレームに描画
         cv2.putText(frame, f'Frame: {frame_count}', (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
@@ -169,10 +170,13 @@ def run(input_video_path, output_video_path, debug_video_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='動画処理プログラム')
     parser.add_argument('--input', default='test.mp4', help='入力動画ファイル')
+    parser.add_argument('--sceneId', default='', help='クライアントで生成されたシーンID')
+    parser.add_argument('--videoId', default='', help='入力動画ファイルのID')
     # 引数をパース
     args = parser.parse_args()
     inputFile = args.input
+    video_id = args.videoId
     print(args)
     outputFile = "output.mp4"
     debugFile = "debug.mp4"
-    run(inputFile, outputFile, debugFile)
+    run(inputFile, outputFile, debugFile, video_id)

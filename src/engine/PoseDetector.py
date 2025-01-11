@@ -34,7 +34,8 @@ class PoseDetector:
         
         self.db = AnalysisDB(db_path="sqlite.db")
 
-    def detect_pose(self, frame, frame_id):
+    def detect_pose(self, frame, frame_id, video_id):
+        """姿勢推定"""
         
         conn, cursor = self.db.get_cursor()
         
@@ -70,9 +71,10 @@ class PoseDetector:
                     )
                     cursor.execute('''
                     INSERT INTO pose
-                    (frame_number, x, y, person_index, keypoints)
-                    VALUES (?, ?, ?, ?, ?)
+                    (video_id, frame_number, x, y, person_index, keypoints)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     ''', (
+                        video_id,
                         frame_id,
                         x,
                         y,

@@ -12,9 +12,8 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.7.2",
+    "canvas": "^3.0.1",
     "concurrently": "^9.1.2",
-    "electron": "^33.3.1",
-    "electron-builder": "^25.1.8",
     "electron-serve": "^2.1.1",
     "konva": "^9.3.18",
     "next": "14.2.23",
@@ -24,6 +23,8 @@
     "react-konva": "^18"
   },
   "devDependencies": {
+    "electron": "^33.3.1",
+    "electron-builder": "^25.1.8",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^20",
     "@types/react": "^18",

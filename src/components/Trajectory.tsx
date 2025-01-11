@@ -9,7 +9,7 @@ import React, {
 import { Stage, Layer, Image } from "react-konva";
 import Konva from "konva";
 import { FaPlay, FaPause } from "react-icons/fa";
-import { webUtils } from "electron";
+import { useRouter } from "next/router";
 
 const Trajectory = () => {
   const imageRef = useRef<Konva.Image>(null);
@@ -18,6 +18,7 @@ const Trajectory = () => {
   const stageRef = useRef(null);
   const [filePath, setFilePath] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const router = useRouter();
 
   const videoElement: HTMLVideoElement = useMemo(() => {
     const element = document.createElement("video");
@@ -51,7 +52,7 @@ const Trajectory = () => {
     return () => {
       anim.stop();
     };
-  }, [videoElement, imageRef.current]);
+  }, [videoElement, imageRef]);
 
   const disabled = useMemo(() => {
     return isAnalyzing || !filePath || !src;
@@ -60,6 +61,7 @@ const Trajectory = () => {
   const analyze = useCallback(async () => {
     const body = {
       input: filePath,
+      sceneId: router.query.scene_id,
     };
     setIsAnalyzing(true);
     await fetch("/api/motion_trace", {
@@ -71,7 +73,7 @@ const Trajectory = () => {
       },
     });
     setIsAnalyzing(false);
-  }, [filePath]);
+  }, [filePath, router]);
 
   return (
     <>
