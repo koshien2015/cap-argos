@@ -36,39 +36,51 @@ class PoseDetector:
 
     def detect_pose(self, frame, frame_id, video_id):
         """姿勢推定"""
-        
+    
         conn, cursor = self.db.get_cursor()
+        h, w, _ = frame.shape  # フレームのサイズを最初に取得
         
-        # 姿勢推定の実行
-        results = self.model(frame)
-        annotatedFrame = results[0].plot()
-        # 検出オブジェクトの名前、バウンディングボックス座標を取得
-        names = results[0].names
-        classes = results[0].boxes.cls
-        boxes = results[0].boxes
-        for box, cls in zip(boxes, classes):
-            name = names[int(cls)]
-            x1, y1, x2, y2 = [int(i) for i in box.xyxy[0]]
-        
-         # 姿勢分析結果のキーポイントを取得する
-        keypoints = results[0].keypoints
-        confs = keypoints.conf.tolist()  # 推論結果:1に近いほど信頼度が高い
-        xys = keypoints.xy.tolist()  # 座標
         try:
-            for person_id, (person_xys, person_confs) in enumerate(zip(xys, confs)):
+            # 姿勢推定の実行
+            results = self.model(frame)
+            annotatedFrame = results[0].plot()
+            
+            # 検出されたすべての人物に対して処理
+            keypoints = results[0].keypoints
+            boxes = results[0].boxes
+            
+            for person_id, (box, person_keypoints) in enumerate(zip(boxes, keypoints)):
+                # バウンディングボックスの座標を取得（正規化）
+                x1, y1, x2, y2 = [int(i) for i in box.xyxy[0]]
+                bbox_normalized = {
+                    'x1': x1/w,
+                    'y1': y1/h,
+                    'x2': x2/w,
+                    'y2': y2/h
+                }
+                
+                # キーポイントの座標と信頼度を取得
+                person_xys = person_keypoints.xy[0].tolist()  # 一人分のキーポイント座標
+                person_confs = person_keypoints.conf[0].tolist()  # 一人分の信頼度
+                
+                # 各キーポイントについて処理
                 for index, (xy, conf) in enumerate(zip(person_xys, person_confs)):
-                    score = conf
-
-                    # スコアが0.5以下なら描画しない
-                    if score < 0.3:
+                    # スコアが0.3以下なら処理をスキップ
+                    if conf < 0.3:
                         continue
-                    h, w, _ = frame.shape
-                    # 正規化
-                    x = int(xy[0])/w
-                    y = int(xy[1])/h
+                    
+                    # 座標の正規化
+                    x = xy[0]/w
+                    y = xy[1]/h
+                    
                     print(
-                        f"Person {person_id}, Keypoint Name={self.keypoint_names[index]}, X={x}, Y={y}, Score={score:.4}"
+                        f"Person {person_id}, Keypoint Name={self.keypoint_names[index]}, "
+                        f"X={x:.4f}, Y={y:.4f}, Score={conf:.4f}, "
+                        f"BBox=[{bbox_normalized['x1']:.4f}, {bbox_normalized['y1']:.4f}, "
+                        f"{bbox_normalized['x2']:.4f}, {bbox_normalized['y2']:.4f}]"
                     )
+                    
+                    # データベースに保存
                     cursor.execute('''
                     INSERT INTO pose
                     (video_id, frame_number, x, y, person_index, keypoints)
@@ -81,21 +93,11 @@ class PoseDetector:
                         person_id,
                         index
                     ))
-                    conn.commit()
+                
+                conn.commit()  # 一人分のキーポイントをまとめてコミット
+                
         finally:
-            conn.close() 
-            
-        # pose_keypoints = []
-        # try:
-        #     for id, lm in enumerate(results.pose_landmarks.landmark):
-        #         h, w, c = frame.shape
-        #         cx, cy = int(lm.x * w), int(lm.y * h)
-        #         pose_keypoints.append((cx, cy, lm.visibility))
-        #         # データベースに保存
-        #         
-        #     conn.commit()
-        # finally:
-        #     conn.close()
+            conn.close()
             
         return annotatedFrame
 

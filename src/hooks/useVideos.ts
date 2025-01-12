@@ -14,7 +14,7 @@ export type PoseData = {
     pose_id: number;
     x: number;
     y: number;
-    person_index: number;
+    person_index: number | null;
     marker_group_id: number;
     keypoints: string;
 }

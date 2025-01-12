@@ -7,6 +7,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
   send: (channel, args) => {
     ipcRenderer.send(channel, args);
   },
+  getWindowSize: () => ipcRenderer.invoke('get-window-size'),
+  onWindowResize: (callback) => {
+    ipcRenderer.on('window-resized', (_, size) => callback(size));
+    // クリーンアップ関数を返す
+    return () => {
+      ipcRenderer.removeAllListeners('window-resized');
+    };
+  },
 
   readVideoAsDataURL: async (filePath) => {
     try {

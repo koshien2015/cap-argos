@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
-const fs = require('fs').promises;
+const fs = require("fs").promises;
 
 const createWindow = async () => {
   const win = new BrowserWindow({
@@ -14,6 +14,17 @@ const createWindow = async () => {
   });
   win.setMenuBarVisibility(false);
   win.title = "Cap-Argos(投球動作解析アプリケーション)";
+
+  win.on("resize", () => {
+    const [width, height] = win.getSize();
+    win.webContents.send("window-resized", { width, height });
+  });
+
+  // 現在のウインドウサイズを取得するハンドラー
+  ipcMain.handle("get-window-size", () => {
+    const [width, height] = win.getSize();
+    return { width, height };
+  });
 
   ipcMain.handle("read-video-file", async (event, filePath) => {
     try {

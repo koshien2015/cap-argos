@@ -13,14 +13,14 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           gap: 8,
         }}
       >
-        <div>
+        {/* <div>
           <Link href={`/`} style={{ color: "white", textDecoration: "none" }}>
             1球分析一覧
           </Link>
-        </div>
+        </div> */}
         <div>
           <Link
-            href={`/videos`}
+            href={`/`}
             style={{ color: "white", textDecoration: "none" }}
           >
             動画から解析

@@ -15,7 +15,7 @@ const Home = () => {
   }, [router]);
 
   if(poseData.length === 0) return <div>Loading...</div>;
-  return <Trajectory filePath={poseData?.[0].filepath} />;
+  return <Trajectory filePath={poseData?.[0].filepath} poseData={poseData}/>;
 };
 
 export default Home;
