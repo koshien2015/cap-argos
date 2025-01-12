@@ -20,15 +20,16 @@
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.4.0",
-    "react-konva": "^18"
+    "react-konva": "^18",
+    "sass": "^1.83.1"
   },
   "devDependencies": {
-    "electron": "^33.3.1",
-    "electron-builder": "^25.1.8",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "electron": "^33.3.1",
+    "electron-builder": "^25.1.8",
     "eslint": "^8",
     "eslint-config-next": "14.2.23",
     "typescript": "^5"

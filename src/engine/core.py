@@ -113,9 +113,9 @@ def run(input_video_path, output_video_path, debug_video_path, video_id):
     vidw = video.get(cv2.CAP_PROP_FRAME_WIDTH)
     vidh = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
     print(vidw, vidh)
-    out = cv2.VideoWriter(output_video_path, outFourcc, 10.0,
+    out = cv2.VideoWriter(output_video_path, outFourcc, 60.0,
                           (int(vidw), int(vidh)))  # 出力先のファイルを開く
-    out2 = cv2.VideoWriter(debug_video_path, outFourcc, 10.0,
+    out2 = cv2.VideoWriter(debug_video_path, outFourcc, 60.0,
                           (int(vidw), int(vidh)))  # 出力先のファイルを開く
 
     ok, frame = video.read()  # 最初のフレームを読み込む
@@ -124,18 +124,15 @@ def run(input_video_path, output_video_path, debug_video_path, video_id):
         sys.exit()
 
     frame_pre = frame.copy()
-    frame_count = 0  # フレーム番号を保持する変数
+    frame_count = 1  # フレーム番号を保持する変数
 
     while True:
-        ok, frame = video.read()  # フレームを読み込む
-        if not ok:
-            break
         frame_count += 1  # フレーム番号をカウントアップ
         frame_next = frame.copy()
         color_diff = cv2.absdiff(frame_next, frame_pre)  # フレーム間の差分計算
-        video.read()[1]
-        video.read()[1]
-        frame4 = video.read()[1]
+        ok, frame4 = video.read()  # フレームを読み込む
+        if not ok:
+            break
         color_diff2 = cv2.absdiff(frame4, frame_next)
         im_mask = np.zeros((int(vidh), int(vidw), 3), np.uint8)
         im_mask = cv2.rectangle(im_mask, (MASK_START_X, MASK_START_Y), (
@@ -149,16 +146,17 @@ def run(input_video_path, output_video_path, debug_video_path, video_id):
         frame = displayCircle(frame, ball, -1, frame_count, frame, video_id)  # 丸で加工
         cImage = blackToColor(dilation_img)  # 2値化画像をカラーの配列サイズと同じにする
         frame = PoseDetector().detect_pose(frame, frame_count, video_id)
+        frame_pre = frame_next # 次のフレームの読み込み
         # フレーム番号をフレームに描画
         cv2.putText(frame, f'Frame: {frame_count}', (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         cv2.imshow("Tracking", frame)  # フレームを画面表示
         out.write(frame)
         out2.write(cImage)
-        # print(im_h)
-
-        frame_pre = frame_next.copy()  # 次のフレームの読み込み
-
+        
+        # 先読みしたフレームを次の処理対象にする
+        frame = frame4
+        
         k = cv2.waitKey(1) & 0xff  # ESCを押したら中止
         if k == 27:
             break

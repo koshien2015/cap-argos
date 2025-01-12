@@ -1,24 +1,24 @@
-import React, {
-  ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { FC, useEffect, useMemo, useRef, useState } from "react";
 import { Stage, Layer, Image } from "react-konva";
 import Konva from "konva";
 import { FaPlay, FaPause } from "react-icons/fa";
-import { useRouter } from "next/router";
 
-const Trajectory = () => {
+type VideoState = {
+  playing: boolean;
+  currentTime: number;
+};
+
+const Trajectory: FC<{
+  filePath: string;
+}> = ({ filePath }) => {
   const imageRef = useRef<Konva.Image>(null);
   const [size, setSize] = useState({ width: 50, height: 50 });
   const [src, setSrc] = useState<string>("");
+  const [videoState, setVideoState] = useState<VideoState>({
+    playing: false,
+    currentTime: 0,
+  });
   const stageRef = useRef(null);
-  const [filePath, setFilePath] = useState<string>("");
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const router = useRouter();
 
   const videoElement: HTMLVideoElement = useMemo(() => {
     const element = document.createElement("video");
@@ -26,7 +26,15 @@ const Trajectory = () => {
     return element;
   }, [src]);
 
-  // when video is loaded, we should read it size
+  useEffect(() => {
+    const f = async () => {
+      const url = await window.electronAPI.readVideoAsDataURL(filePath);
+      setSrc(url);
+    };
+    f();
+    return () => {};
+  }, [filePath]);
+
   useEffect(() => {
     const onload = function () {
       setSize({
@@ -36,10 +44,22 @@ const Trajectory = () => {
     };
     videoElement.addEventListener("loadedmetadata", onload);
     videoElement.addEventListener("loadeddata", onload);
+    videoElement.addEventListener("playing", () => {
+      setVideoState({
+        playing: true,
+        currentTime: videoElement.currentTime,
+      });
+    });
+    videoElement.addEventListener("ended", () => {
+      setVideoState({
+        playing: false,
+        currentTime: 0,
+      });
+    });
     return () => {
       videoElement.removeEventListener("loadedmetadata", onload);
     };
-  }, [videoElement]);
+  }, [videoElement, setVideoState]);
 
   // use Konva.Animation to redraw a layer
   useEffect(() => {
@@ -53,27 +73,6 @@ const Trajectory = () => {
       anim.stop();
     };
   }, [videoElement, imageRef]);
-
-  const disabled = useMemo(() => {
-    return isAnalyzing || !filePath || !src;
-  }, [isAnalyzing, filePath, src]);
-
-  const analyze = useCallback(async () => {
-    const body = {
-      input: filePath,
-      sceneId: router.query.scene_id,
-    };
-    setIsAnalyzing(true);
-    await fetch("/api/motion_trace", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-    setIsAnalyzing(false);
-  }, [filePath, router]);
 
   return (
     <>
@@ -98,40 +97,7 @@ const Trajectory = () => {
           videoElement.play();
         }}
       >
-        <FaPlay />
-      </button>
-      <button
-        style={{
-          border: "1px solid gray",
-          borderRadius: 4,
-        }}
-        onClick={() => {
-          videoElement.pause();
-        }}
-      >
-        <FaPause />
-      </button>
-      <input
-        onChange={(e: ChangeEvent<HTMLInputElement>) => {
-          const file = e.target.files?.[0];
-          if (file) {
-            // @ts-ignore
-            setFilePath(window.webUtils.getPathForFile(file));
-            const url = URL.createObjectURL(file);
-            setSrc(url);
-          }
-        }}
-        type="file"
-        multiple={false}
-        accept=".mp4,.mov"
-      />
-      <button
-        disabled={disabled}
-        onClick={async () => {
-          await analyze();
-        }}
-      >
-        解析実行
+        {videoState.playing ? <FaPause /> : <FaPlay />}
       </button>
     </>
   );
