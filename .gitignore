@@ -41,3 +41,6 @@ src/engine/__pycache__/
 src/engine/_models/
 *.mp4
 *.pt
+src/engine/build/
+python/dist/
+*.spec

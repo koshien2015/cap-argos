@@ -46,11 +46,6 @@ const Home = () => {
     <div>
       {videos?.map((video) => (
         <>
-        <video
-          src={video.filepath}
-          width={320}
-          height={240}
-        />
         <Link href={`/video/${video.video_id}`} key={video.video_id}>
           <div>
             {video.video_id} {video.pose_count} {video.max_frame}

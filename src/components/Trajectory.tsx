@@ -45,6 +45,7 @@ const Trajectory: FC<{
   const videoElement: HTMLVideoElement = useMemo(() => {
     const element = document.createElement("video");
     element.src = src;
+    element.muted = true;
     return element;
   }, [src]);
 

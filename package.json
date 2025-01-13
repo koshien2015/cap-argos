@@ -6,9 +6,12 @@
   "type": "commonjs",
   "scripts": {
     "dev": "concurrently -n \"NEXT,ELECTRON\" -c \"yellow,blue\" --kill-others \"next dev\" \"electron .\"",
-    "build": "next build && electron-builder",
+    "build": "yarn run build:python && next build && electron-builder",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:python": "node scripts/build-python.js",
+    "build:python:win": "cross-env PLATFORM=win32 node scripts/build-python.js",
+    "build:python:mac": "cross-env PLATFORM=darwin node scripts/build-python.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.2",
@@ -28,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "cross-env": "^7.0.3",
     "electron": "^33.3.1",
     "electron-builder": "^25.1.8",
     "eslint": "^8",
