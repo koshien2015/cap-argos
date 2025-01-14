@@ -1,9 +1,10 @@
 import { getDatabaseConnection } from "@/utils/database";
+import { Database } from "sqlite3";
 
 export async function GET() {
   try {
-    const db = getDatabaseConnection();
-    const result = db.prepare(`
+    const db:Database = await getDatabaseConnection();
+    const result = await db.all(`
           select
               p.video_id
               , max(frame_number) as max_frame
@@ -15,7 +16,7 @@ export async function GET() {
                   on v.id = p.video_id 
           group by
               p.video_id
-        `).all();
+        `);
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error: unknown) {
     console.error(error);

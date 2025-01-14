@@ -1,11 +1,10 @@
 import { getDatabaseConnection } from "@/utils/database";
 import { spawn } from "child_process";
 import { NextRequest } from "next/server";
-//import { join } from "path";
 
 export async function POST(req: NextRequest): Promise<Response> {
   const body = await req.json();
-  const db = getDatabaseConnection();
+  const db = await getDatabaseConnection();
   // videoテーブルにファイルパスを格納
   const result = db
     .prepare("INSERT INTO video (filepath) VALUES (?)")

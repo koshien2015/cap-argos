@@ -1,8 +1,9 @@
 import { getDatabaseConnection } from "@/utils/database";
+import sqlite3 from 'sqlite3';
 
 export async function GET() {
   try {
-    const db = getDatabaseConnection();
+    const db:sqlite3.Database = await getDatabaseConnection();
     const initializeVideoSql = `
         CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY, filepath TEXT);
     `;
@@ -34,10 +35,10 @@ export async function GET() {
         );
     `;
 
-    db.prepare(initializeVideoSql).run();
-    db.prepare(initializeSceneSql).run();
-    db.prepare(initializeMarkerGroupSql).run();
-    db.prepare(initializePoseSql).run();
+    db.run(initializeVideoSql);
+    db.run(initializeSceneSql);
+    db.run(initializeMarkerGroupSql);
+    db.run(initializePoseSql);
     return new Response('', { status: 200 });
   } catch (error: unknown) {
     console.error(error);

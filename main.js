@@ -1,6 +1,9 @@
 const { app, BrowserWindow, ipcMain, session } = require("electron");
 const path = require("path");
 const fs = require("fs").promises;
+const { spawn } = require("child_process");
+const { getDatabaseConnection } = require("./src/utils/database");
+
 const electronServe = require("./electronServe");
 
 let loadURL = async () => {};
@@ -15,27 +18,27 @@ const initFunction = async () => {
 };
 
 const getPath = async (path_, file) => {
-	try {
-		const result = await fs.stat(path_);
+  try {
+    const result = await fs.stat(path_);
 
-		if (result.isFile()) {
-			return path_;
-		}
+    if (result.isFile()) {
+      return path_;
+    }
 
-		if (result.isDirectory()) {
-			return getPath(path.join(path_, `${file}.html`));
-		}
-	} catch {}
+    if (result.isDirectory()) {
+      return getPath(path.join(path_, `${file}.html`));
+    }
+  } catch {}
 };
 
 const handler = async (request, callback) => {
   const options = {
-		isCorsEnabled: true,
-		scheme: 'app',
-		hostname: '-',
-		file: 'index',
+    isCorsEnabled: true,
+    scheme: "app",
+    hostname: "-",
+    file: "index",
     directory: path.resolve(app.getAppPath(), "out"),
-	};
+  };
   const indexPath = path.join(options.directory, `${options.file}.html`);
   const filePath = path.join(
     options.directory,
@@ -110,6 +113,55 @@ const createWindow = async () => {
     } catch (error) {
       // @ts-ignore
       throw new Error(`Failed to read video file: ${error.message}`);
+    }
+  });
+
+  ipcMain.handle("motion-trace", async (event, args) => {
+    // Pythonバッチ実行処理をここで行う
+    const body = args;
+    const db = await getDatabaseConnection();
+    // videoテーブルにファイルパスを格納
+    const result = await db
+      .run("INSERT INTO video (filepath) VALUES (?)", body.input)
+    const insertedRowId = result.lastInsertRowid;
+    // sceneデータを作成
+    await db.run("INSERT INTO scene (video_id) VALUES (?)", insertedRowId);
+    try {
+      // 実行ファイルのパスを取得
+      const executablePath =
+        process.env.NODE_ENV === "development" ? "python" : "";
+      // Windowsではスペースを含むパスも正しく扱えるように配列で指定
+      const args =
+        process.env.NODE_ENV === "development"
+          ? [
+              "src/engine/core.py",
+              `--input`,
+              body.input,
+              `--sceneId`,
+              body.sceneId,
+              `--videoId`,
+              insertedRowId,
+            ]
+          : [
+              `--input`,
+              body.input,
+              `--sceneId`,
+              body.sceneId,
+              `--videoId`,
+              insertedRowId,
+            ];
+      const options = {
+        // シェルを使用しない（セキュリティ上推奨）
+        shell: false,
+        // 作業ディレクトリを指定
+        //cwd: app.getPath("userData"),
+        // 環境変数を継承
+        env: { ...process.env },
+      };
+      const currentProcess = spawn(executablePath, args, options);
+      return currentProcess;
+    } catch (error) {
+      console.error(error);
     }
   });
 

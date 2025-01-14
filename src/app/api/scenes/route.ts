@@ -1,9 +1,10 @@
 import { getDatabaseConnection } from "@/utils/database";
+import { Database } from "sqlite3";
 
 export async function GET() {
   try {
-    const db = getDatabaseConnection();
-    const result = db.prepare(`
+    const db:Database = await getDatabaseConnection();
+    const result = await db.all(`
         select
             s.scene_id
             , v.filepath
@@ -15,7 +16,7 @@ export async function GET() {
             scene s 
             inner join video v 
                 on v.id = s.video_id
-        `).all();
+        `);
     
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error: unknown) {

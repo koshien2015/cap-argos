@@ -42,14 +42,9 @@ const Home = () => {
       input: filePath,
     };
     setIsAnalyzing(true);
-    await fetch("/api/motion_trace", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
+    // @ts-ignore
+    const result = await window.electronAPI.motionTrace('motion-trace', body);
+    console.log(result);
     setIsAnalyzing(false);
   }, [filePath]);
 

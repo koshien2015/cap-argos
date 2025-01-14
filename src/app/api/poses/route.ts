@@ -1,5 +1,6 @@
 import { getDatabaseConnection } from "@/utils/database";
 import { NextRequest } from "next/server";
+import { Database } from "sqlite3";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,10 +17,9 @@ export async function GET(request: NextRequest) {
         }
       );
     }
-    const db = getDatabaseConnection();
-    const result = db
-      .prepare(
-        `
+    const db: Database = await getDatabaseConnection();
+    const result = await db.get(
+      `
                 select
                     p.video_id
                     , v.filepath
@@ -35,9 +35,9 @@ export async function GET(request: NextRequest) {
                     inner join video v 
                         on v.id = p.video_id
                 where v.id = ?
-        `
-      )
-      .all(video_id);
+        `,
+      video_id
+    );
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error: unknown) {
     console.error(error);
