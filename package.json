@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "concurrently -n \"NEXT,ELECTRON\" -c \"yellow,blue\" --kill-others \"next dev\" \"electron .\"",
     "build": "yarn run build:python && next build && electron-builder",
+    "build:electron": "next build && electron-builder",
     "start": "next start",
     "lint": "next lint",
     "build:python": "node scripts/build-python.js",
@@ -38,5 +39,31 @@
     "eslint-config-next": "14.2.23",
     "typescript": "^5"
   },
+  "build": {
+    "asar": true,
+    "extraResources": [
+      {
+        "from": "sqlite.db",
+        "to": "sqlite.db"
+      }
+    ],
+    "files": [
+      "out/**/*",
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "electronServe.js",
+      "public/**/*",
+      "package.json",
+      "!**/node_modules/**",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}"
+    ]
+  },
+  "bundleDependencies": [
+    "@types/node",
+    "typescript"
+  ],
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

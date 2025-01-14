@@ -44,3 +44,4 @@ src/engine/_models/
 src/engine/build/
 python/dist/
 *.spec
+dist/

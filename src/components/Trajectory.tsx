@@ -197,7 +197,7 @@ const Trajectory: FC<{
       });
     });
     return points;
-  }, [currentPose]);
+  }, [returnPoints, size]);
 
   const jointAngles = useMemo(() => {
     const personNumber = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -242,6 +242,7 @@ const Trajectory: FC<{
       <Stage ref={stageRef} width={size.width} height={size.height}>
         <Layer>
           <Image
+            alt=""
             //opacity={0.7}
             ref={imageRef}
             image={videoElement}
@@ -252,8 +253,9 @@ const Trajectory: FC<{
           />
           {currentPose
             ?.filter((pose) => pose.person_index !== null)
-            ?.map((pose) => (
+            ?.map((pose, index) => (
               <Circle
+                key={index}
                 draggable
                 onDragEnd={(e) => {
                   console.log(e.target.position());
@@ -266,8 +268,9 @@ const Trajectory: FC<{
             ))}
           {currentPose
             ?.filter((pose) => pose.person_index === null)
-            ?.map((pose) => (
+            ?.map((pose, index) => (
               <Circle
+                key={index}
                 draggable
                 onDragEnd={(e) => {
                   console.log(e.target.position());
@@ -278,8 +281,9 @@ const Trajectory: FC<{
                 stroke={"red"}
               />
             ))}
-          {linePoints.map((line) => (
+          {linePoints.map((line, index) => (
             <Line
+              key={index}
               points={[line.x1, line.y1, line.x2, line.y2]}
               stroke={COLORS[line.person_id]}
               strokeWidth={2}

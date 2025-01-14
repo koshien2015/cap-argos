@@ -4,6 +4,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  assetPrefix: './',
   webpack: (config) => {
     config.externals.push({
       canvas: 'commonjs canvas',

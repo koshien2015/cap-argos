@@ -6,18 +6,29 @@ import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 const Home = () => {
   const [filePath, setFilePath] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const { loadVideos, videos } = useVideos();
-  
+  const { loadVideos, videos, isLoaded } = useVideos();
+  const [isInitializedDb, setIsInitializedDb] = useState<boolean>(false);
+
   useEffect(() => {
     const f = async () => {
-      await fetch("/api/initialize", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      await loadVideos();
+      try {
+        const res = await fetch("/api/initialize", {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        if (!res.ok) {
+          alert("データベースの初期化に失敗しました");
+          return;
+        }
+        setIsInitializedDb(true);
+      } catch (error) {
+        // @ts-ignore
+        alert("何らかのエラーが発生しました" + error.message);
+      }
+        await loadVideos();
     };
     f();
   }, []);
@@ -42,16 +53,21 @@ const Home = () => {
     setIsAnalyzing(false);
   }, [filePath]);
 
+  if (!isInitializedDb) {
+    return <div>データベース初期化中...</div>;
+  } else if (!isLoaded) {
+    return <div>データベース読み込み中...</div>;
+  }
   return (
     <div>
       {videos?.map((video) => (
         <>
-        <Link href={`/video/${video.video_id}`} key={video.video_id}>
-          <div>
-            {video.video_id} {video.pose_count} {video.max_frame}
-            {video.filepath}
-          </div>
-        </Link>
+          <Link href={`/video/${video.video_id}`} key={video.video_id}>
+            <div>
+              {video.video_id} {video.pose_count} {video.max_frame}
+              {video.filepath}
+            </div>
+          </Link>
         </>
       ))}
       <input
