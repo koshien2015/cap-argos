@@ -25,13 +25,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     }
   },
 
-  motionTrace: async (filePath) => {
-    try {
-      const base64Data = await ipcRenderer.invoke("motion-trace", filePath);
-      return `data:video/mp4;base64,${base64Data}`;
-    } catch (error) {
-      throw new Error(`Failed to read video file: ${error.message}`);
-    }
+  motionTrace: async (args) => {
+      await ipcRenderer.invoke("motion-trace", args);
   },
 });
 

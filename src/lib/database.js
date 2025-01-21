@@ -2,6 +2,7 @@
 const sqlite3 = require('sqlite3')
 // eslint-disable-next-line
 const { open } = require('sqlite')
+// eslint-disable-next-line
 const path = require("path");
 
 let db = null;

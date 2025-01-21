@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, session } = require("electron");
 const path = require("path");
 const fs = require("fs").promises;
 const { spawn } = require("child_process");
-const { getDatabaseConnection } = require("./src/utils/database");
+const { getDatabaseConnection } = require("./src/lib/database");
 
 const electronServe = require("./electronServe");
 
@@ -117,39 +117,34 @@ const createWindow = async () => {
   });
 
   ipcMain.handle("motion-trace", async (event, args) => {
+    const filePath = args[0];
+    const processEnv = args[1];
     // Pythonバッチ実行処理をここで行う
-    const body = args;
-    const db = await getDatabaseConnection();
-    // videoテーブルにファイルパスを格納
-    const result = await db
-      .run("INSERT INTO video (filepath) VALUES (?)", body.input)
-    const insertedRowId = result.lastInsertRowid;
-    // sceneデータを作成
-    await db.run("INSERT INTO scene (video_id) VALUES (?)", insertedRowId);
     try {
+      const db = await getDatabaseConnection();
+      let insertedRowId = null;
+      // videoテーブルにファイルパスを格納
+      const result = await db.run(
+        "INSERT INTO video (filepath) VALUES (?)",
+        filePath
+      );
+      insertedRowId = result.lastID;
+      // sceneデータを作成
+      await db.run("INSERT INTO scene (video_id) VALUES (?)", insertedRowId);
       // 実行ファイルのパスを取得
-      const executablePath =
-        process.env.NODE_ENV === "development" ? "python" : "";
+      const executablePath = processEnv === "development" ? "python" : "";
+
       // Windowsではスペースを含むパスも正しく扱えるように配列で指定
       const args =
-        process.env.NODE_ENV === "development"
+        processEnv === "development"
           ? [
               "src/engine/core.py",
               `--input`,
-              body.input,
-              `--sceneId`,
-              body.sceneId,
+              filePath,
               `--videoId`,
               insertedRowId,
             ]
-          : [
-              `--input`,
-              body.input,
-              `--sceneId`,
-              body.sceneId,
-              `--videoId`,
-              insertedRowId,
-            ];
+          : [`--input`, filePath, `--videoId`, insertedRowId];
       const options = {
         // シェルを使用しない（セキュリティ上推奨）
         shell: false,
@@ -159,9 +154,34 @@ const createWindow = async () => {
         env: { ...process.env },
       };
       const currentProcess = spawn(executablePath, args, options);
-      return currentProcess;
+      return new Promise((resolve, reject) => {
+        // 標準出力のログ
+        currentProcess.stdout.on("data", (data) => {
+          console.log(`Analysis output: ${data}`);
+        });
+
+        // エラー出力のログ
+        currentProcess.stderr.on("data", (data) => {
+          console.error(`Analysis error: ${data}`);
+        });
+
+        currentProcess.on("close", (code) => {
+          if (code === 0) {
+            resolve("Analysis completed");
+            return;
+          } else {
+            reject(new Error(`Analysis process exited with code ${code}`));
+          }
+        });
+
+        // プロセスのエラーハンドリング
+        process.on("error", (err) => {
+          reject(new Error(`Failed to start analysis process: ${err.message}`));
+        });
+      });
     } catch (error) {
       console.error(error);
+      throw new Error(`Failed to start analysis process: ${error.message}`);
     }
   });
 

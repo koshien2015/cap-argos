@@ -1,4 +1,4 @@
-import { getDatabaseConnection } from "@/utils/database";
+import { getDatabaseConnection } from "@/lib/database";
 import { spawn } from "child_process";
 import { NextRequest } from "next/server";
 

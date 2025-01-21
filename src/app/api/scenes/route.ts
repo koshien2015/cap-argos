@@ -1,4 +1,4 @@
-import { getDatabaseConnection } from "@/utils/database";
+import { getDatabaseConnection } from "@/lib/database";
 import { Database } from "sqlite3";
 
 export async function GET() {

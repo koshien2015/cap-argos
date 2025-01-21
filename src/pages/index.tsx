@@ -28,24 +28,27 @@ const Home = () => {
         // @ts-ignore
         alert("何らかのエラーが発生しました" + error.message);
       }
-        await loadVideos();
+      await loadVideos();
     };
     f();
-  }, []);
+  }, [loadVideos]);
 
   const disabled = useMemo(() => {
     return isAnalyzing || !filePath;
   }, [isAnalyzing, filePath]);
 
   const analyze = useCallback(async () => {
-    const body = {
-      input: filePath,
-    };
     setIsAnalyzing(true);
-    // @ts-ignore
-    const result = await window.electronAPI.motionTrace('motion-trace', body);
-    console.log(result);
-    setIsAnalyzing(false);
+
+    try {
+      // @ts-ignore
+      await window.electronAPI.motionTrace([filePath, process.env.NODE_ENV]);
+      setIsAnalyzing(false);
+    } catch (error) {
+      // @ts-ignore
+      alert("解析に失敗しました" + error.message);
+      setIsAnalyzing(false);
+    }
   }, [filePath]);
 
   if (!isInitializedDb) {

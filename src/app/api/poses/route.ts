@@ -1,4 +1,4 @@
-import { getDatabaseConnection } from "@/utils/database";
+import { getDatabaseConnection } from "@/lib/database";
 import { NextRequest } from "next/server";
 import { Database } from "sqlite3";
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       );
     }
     const db: Database = await getDatabaseConnection();
-    const result = await db.get(
+    const result = await db.all(
       `
                 select
                     p.video_id

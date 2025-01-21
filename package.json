@@ -5,15 +5,15 @@
   "main": "main.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "concurrently -n \"NEXT,ELECTRON\" -c \"yellow,blue\" --kill-others \"next dev\" \"electron .\"",
-    "build": "yarn run build:python && next build && electron-builder",
+    "dev": "cross-env NODE_ENV=development && concurrently -n \"NEXT,ELECTRON\" -c \"yellow,blue\" --kill-others \"next dev\" \"electron .\"",
+    "build": "build:python && next build && electron-builder",
     "build:electron": "next build && electron-builder",
     "start": "next start",
     "lint": "next lint",
     "build:python": "node scripts/build-python.js",
     "build:python:win": "cross-env PLATFORM=win32 node scripts/build-python.js",
     "build:python:mac": "cross-env PLATFORM=darwin node scripts/build-python.js",
-    "postinstall": "electron-rebuild -f -w better-sqlite3"
+    "postinstall": "electron-rebuild"
   },
   "dependencies": {
     "canvas": "^3.0.1",
@@ -53,6 +53,7 @@
       "dist/**/*",
       "main.js",
       "preload.js",
+      "src/lib/database.js",
       "electronServe.js",
       "public/**/*",
       "package.json",
@@ -64,7 +65,8 @@
   },
   "bundleDependencies": [
     "@types/node",
-    "typescript"
+    "typescript",
+    "sqlite3"
   ],
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
